@@ -2,13 +2,15 @@
 
 
 a = Analysis(
-    ['main.py'],
+    ['run_barcode.py'],
     pathex=[],
     binaries=[],
     datas=[
-        ('splash.png', '.'),  # 启动画面图片
-        ('app.svg', '.'),     # 应用图标
-        # 如果有其他资源文件，也需要在这里添加
+        ('assets/splash.png', '.'),
+        ('assets/app.svg', '.'),
+        ('assets/app.ico', '.'),
+        ('Encoder', 'Encoder'),
+        ('src', 'src'),
     ],
     hiddenimports=[
         'reportlab.graphics.barcode.code128',
@@ -51,5 +53,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon='app.ico',
+    icon='assets/app.ico',
 )
