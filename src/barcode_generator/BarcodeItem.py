@@ -200,7 +200,20 @@ class BarcodeItem(QFrame):
                 try:
                     font = ImageFont.truetype("arial.ttf", barcode_params['frontSize'])
                 except IOError:
-                    font = ImageFont.load_default()
+                    font_paths = [
+                        "/Library/Fonts/Arial Unicode.ttf",
+                        "/System/Library/Fonts/Helvetica.ttc",
+                        "/System/Library/Fonts/SFNS.ttf",
+                    ]
+                    font = None
+                    for fp in font_paths:
+                        try:
+                            font = ImageFont.truetype(fp, barcode_params['frontSize'])
+                            break
+                        except IOError:
+                            continue
+                    if font is None:
+                        font = ImageFont.load_default()
                 
                 text = f"NO: {self.style_code}"
                 draw_temp = ImageDraw.Draw(im)

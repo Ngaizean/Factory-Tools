@@ -79,7 +79,23 @@ class EAN13Renderer:
         font_size = font_sizes.get(bar_width, 24)
 
         # font = get_font("courR", font_size)
-        font = ImageFont.truetype("arial.ttf", fontSize)
+        try:
+            font = ImageFont.truetype("arial.ttf", fontSize)
+        except OSError:
+            font_paths = [
+                "/Library/Fonts/Arial Unicode.ttf",
+                "/System/Library/Fonts/Helvetica.ttc",
+                "/System/Library/Fonts/SFNS.ttf",
+            ]
+            font = None
+            for fp in font_paths:
+                try:
+                    font = ImageFont.truetype(fp, fontSize)
+                    break
+                except OSError:
+                    continue
+            if font is None:
+                font = ImageFont.load_default()
         draw = ImageDraw.Draw(img)
 
         # 第一个数字保持不变
