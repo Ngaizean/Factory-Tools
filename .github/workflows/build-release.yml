@@ -29,8 +29,13 @@ jobs:
       - name: Build with PyInstaller
         run: pyinstaller barcode_generator.spec
 
+      - name: Rename exe
+        run: |
+          $exe = Get-ChildItem dist/*.exe | Select-Object -First 1
+          Rename-Item $exe.FullName "BarcodeGenerator.exe"
+
       - name: Upload exe to release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.event.release.tag_name || inputs.tag }}
-          files: dist/汇庆条形码生成器.exe
+          files: dist/BarcodeGenerator.exe
