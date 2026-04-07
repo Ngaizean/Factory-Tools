@@ -165,56 +165,72 @@ class BarcodeGenerator(QMainWindow):
             self.barcode_data_dict[itemID] = self.barcode_items[itemID].get_barcode_data()
             
 
-    def save_pdf(self,itemID=None,type=None):
-        
-        def generate_pdf(self,barcode_data_list):
+    def save_pdf(self, itemID=None, type=None):
 
-            # 打开文件对话框
+        def generate_pdf(self, barcode_data_list):
             file_path, _ = QFileDialog.getSaveFileName(
                 self, "保存PDF", "", "PDF文件 (*.pdf);;所有文件 (*.*)")
-
             if not file_path:
                 return False
-            
-            
             try:
-                # 确保文件有正确的扩展名
                 if not file_path.endswith('.pdf'):
                     file_path += '.pdf'
-                # 创建合并的PDF
                 self.generate_merged_pdf(file_path, barcode_data_list)
-                QMessageBox.information(self, "成功", f"条形码已保存！")
+                QMessageBox.information(self, "成功", "条形码已保存！")
                 return True
-                
             except Exception as e:
                 QMessageBox.critical(self, "错误", f"保存PDF时出错: {str(e)}")
                 return False
-    
-        for v in self.barcode_items.values():
-            if not v.generate_barcode():
-                QMessageBox.warning(self, "错误", "出现错误！")
-                return
-                
-            
-        for item in self.barcode_items.values():
-            item.generate_barcode()
+
         if type == 'merge':
+            # 1. 自动删除完全空白的条目（款号和条形码编号均为空）
+            empty_items = []
+            for item_id, item in list(self.barcode_items.items()):
+                if not item.style_input.text().strip() and not item.code_input.text().strip():
+                    empty_items.append(item)
+
+            for item in empty_items:
+                self.items_layout.removeWidget(item)
+                del self.barcode_items[item.itemID]
+                if item in self.selected_items:
+                    self.selected_items.remove(item)
+                item.deleteLater()
+
+            if not self.barcode_items:
+                QMessageBox.information(self, "提示", "没有可保存的条目。")
+                self.add_barcode_item()
+                return
+
+            # 2. 尝试为所有剩余条目生成条形码
+            failed_items = []
+            for item_id, item in list(self.barcode_items.items()):
+                if not item.generate_barcode():
+                    failed_items.append(item)
+
+            if failed_items:
+                QMessageBox.warning(self, "条目未完成",
+                    f"有 {len(failed_items)} 个条目尚未完成，请检查输入后重试。")
+                return
+
+            # 3. 保存PDF
             generate_pdf(self, self.barcode_data_dict)
+
         elif type == 'separate':
-            # 选择保存目录
+            for v in self.barcode_items.values():
+                if not v.generate_barcode():
+                    QMessageBox.warning(self, "错误", "出现错误！")
+                    return
+
             dir_path = QFileDialog.getExistingDirectory(self, "选择保存目录")
             if not dir_path:
                 return
-            
+
             try:
                 success_count = 0
-                for k,v in self.barcode_data_dict.items():
-                    # 创建文件名
+                for k, v in self.barcode_data_dict.items():
                     file_name = f"{v['style_code']}_{v['barcode_code']}" if v['style_code'] else f"{v['barcode_code']}"
                     file_path = os.path.join(dir_path, f"{file_name}.pdf")
-                    
-                    # 生成单个PDF
-                    self.generate_merged_pdf(file_path, {k:v})
+                    self.generate_merged_pdf(file_path, {k: v})
                     success_count += 1
 
                 QMessageBox.information(self, "成功", f"已成功保存 {success_count} 个PDF文件！")
@@ -222,9 +238,9 @@ class BarcodeGenerator(QMainWindow):
             except Exception as e:
                 QMessageBox.critical(self, "错误", f"保存分开PDF时出错: {str(e)}")
         elif type == 'single':
-            for k,v in self.barcode_data_dict.items():
+            for k, v in self.barcode_data_dict.items():
                 if k == itemID:
-                    generate_pdf(self,{k:v})
+                    generate_pdf(self, {k: v})
 
     
     

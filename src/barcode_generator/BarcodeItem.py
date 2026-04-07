@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QFrame, QGridLayout, QLabel, QLineEdit, QPushButton, QSpinBox, QHBoxLayout, QFileDialog, QMessageBox
+from PyQt5.QtWidgets import QFrame, QGridLayout, QLabel, QLineEdit, QPushButton, QSpinBox, QHBoxLayout, QFileDialog, QMessageBox, QApplication
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPixmap
 from io import BytesIO
@@ -92,55 +92,73 @@ class BarcodeItem(QFrame):
     def initUI(self):
         self.setFrameShape(QFrame.Box)
         self.setLineWidth(1)
-        
+
         layout = QGridLayout(self)
-        
-        # 第一行：款号输入
+
+        # 第一行：款号输入 + 复制粘贴按钮
         self.style_label = QLabel('款号:')
         self.style_input = QLineEdit()
+        self.copy_style_button = QPushButton('复制')
+        self.copy_style_button.setFixedWidth(50)
+        self.copy_style_button.clicked.connect(self.copy_style)
+        self.paste_style_button = QPushButton('粘贴')
+        self.paste_style_button.setFixedWidth(50)
+        self.paste_style_button.clicked.connect(self.paste_style)
+
         layout.addWidget(self.style_label, 0, 0)
-        layout.addWidget(self.style_input, 0, 1, 1, 2)
-        
-        # 第二行：条形码输入
+        layout.addWidget(self.style_input, 0, 1)
+        layout.addWidget(self.copy_style_button, 0, 2)
+        layout.addWidget(self.paste_style_button, 0, 3)
+
+        # 第二行：条形码输入 + 复制粘贴按钮
         self.code_label = QLabel('条形码编号:')
         self.code_input = QLineEdit()
         self.code_input.setPlaceholderText('12位或13位数字')
+        self.copy_code_button = QPushButton('复制')
+        self.copy_code_button.setFixedWidth(50)
+        self.copy_code_button.clicked.connect(self.copy_code)
+        self.paste_code_button = QPushButton('粘贴')
+        self.paste_code_button.setFixedWidth(50)
+        self.paste_code_button.clicked.connect(self.paste_code)
+
         layout.addWidget(self.code_label, 1, 0)
-        layout.addWidget(self.code_input, 1, 1, 1, 2)
-        
-        # 第三行：数量输入和生成按钮 - 使用自定义NoWheelSpinBox替代QSpinBox
+        layout.addWidget(self.code_input, 1, 1)
+        layout.addWidget(self.copy_code_button, 1, 2)
+        layout.addWidget(self.paste_code_button, 1, 3)
+
+        # 第三行：数量输入和生成按钮
         self.quantity_label = QLabel('数量:')
-        self.quantity_input = NoWheelSpinBox()  # 使用禁用滚轮的SpinBox
+        self.quantity_input = NoWheelSpinBox()
         self.quantity_input.setMinimum(1)
         self.quantity_input.setMaximum(9999)
         self.quantity_input.setValue(1)
         self.generate_button = QPushButton('预览条形码')
         self.generate_button.clicked.connect(self.generate_barcode)
-        
+
         layout.addWidget(self.quantity_label, 2, 0)
         layout.addWidget(self.quantity_input, 2, 1)
-        layout.addWidget(self.generate_button, 2, 2)
-        
+        layout.addWidget(self.generate_button, 2, 2, 1, 2)
+
         # 第四行：条形码显示区域
         self.barcode_label = QLabel()
         self.barcode_label.setAlignment(Qt.AlignCenter)
         self.barcode_label.setMinimumHeight(200)
         self.barcode_label.setText("(未生成条形码)")
-        layout.addWidget(self.barcode_label, 3, 0, 1, 3)
-        
+        layout.addWidget(self.barcode_label, 3, 0, 1, 4)
+
         # 第五行：单项操作按钮
         self.save_button = QPushButton('保存此条形码')
         self.save_button.clicked.connect(self.save_barcode)
         self.save_button.setEnabled(False)
-        
+
         self.save_pdf_button = QPushButton('保存此条为PDF')
         self.save_pdf_button.clicked.connect(self.save_to_pdf)
         self.save_pdf_button.setEnabled(False)
-        
+
         button_layout = QHBoxLayout()
         button_layout.addWidget(self.save_button)
         button_layout.addWidget(self.save_pdf_button)
-        layout.addLayout(button_layout, 4, 0, 1, 3)
+        layout.addLayout(button_layout, 4, 0, 1, 4)
     def generate_barcode(self):
         # 先取消选中状态
         self.clearSelection()
@@ -262,17 +280,16 @@ class BarcodeItem(QFrame):
 
     def connectEvents(self):
         """为所有输入框和按钮连接事件，使它们在被操作时取消选中状态"""
-        # 为输入框添加点击事件
         self.style_input.mousePressEvent = lambda event: self.handleWidgetClick(event, self.style_input)
         self.code_input.mousePressEvent = lambda event: self.handleWidgetClick(event, self.code_input)
-        
-        # 为SpinBox添加点击事件
         self.quantity_input.mousePressEvent = lambda event: self.handleWidgetClick(event, self.quantity_input)
-        
-        # 为按钮添加点击事件处理
         self.generate_button.mousePressEvent = lambda event: self.handleWidgetClick(event, self.generate_button)
         self.save_button.mousePressEvent = lambda event: self.handleWidgetClick(event, self.save_button)
         self.save_pdf_button.mousePressEvent = lambda event: self.handleWidgetClick(event, self.save_pdf_button)
+        self.copy_style_button.mousePressEvent = lambda event: self.handleWidgetClick(event, self.copy_style_button)
+        self.paste_style_button.mousePressEvent = lambda event: self.handleWidgetClick(event, self.paste_style_button)
+        self.copy_code_button.mousePressEvent = lambda event: self.handleWidgetClick(event, self.copy_code_button)
+        self.paste_code_button.mousePressEvent = lambda event: self.handleWidgetClick(event, self.paste_code_button)
     
     def handleWidgetClick(self, event, widget):
         """处理控件点击事件，取消选中状态"""
@@ -288,3 +305,15 @@ class BarcodeItem(QFrame):
                 'barcode_image': self.barcode_image,
                 'itemID': self.itemID
             }
+
+    def copy_style(self):
+        QApplication.clipboard().setText(self.style_input.text())
+
+    def paste_style(self):
+        self.style_input.setText(QApplication.clipboard().text())
+
+    def copy_code(self):
+        QApplication.clipboard().setText(self.code_input.text())
+
+    def paste_code(self):
+        self.code_input.setText(QApplication.clipboard().text())
