@@ -1,11 +1,11 @@
 import sys
 import os
-from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
-                            QHBoxLayout, QLabel, QLineEdit, QPushButton, 
+from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
+                            QHBoxLayout, QLabel, QLineEdit, QPushButton,
                             QMessageBox, QFileDialog, QSpinBox, QScrollArea,
-                            QFrame, QGridLayout, QSplashScreen)  # 添加QSplashScreen
+                            QFrame, QGridLayout)
 from PyQt5.QtGui import QPixmap, QIcon
-from PyQt5.QtCore import Qt, QTimer  # 添加QTimer
+from PyQt5.QtCore import Qt
 from PyQt5.QtSvg import QSvgRenderer
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
@@ -370,35 +370,8 @@ if __name__ == '__main__':
     font.setPointSize(font_size)
     app.setFont(font)
     
-    # 使用resource_path来获取打包后的资源路径
-    try:
-        # 创建启动画面，并调整大小
-        original_pixmap = QPixmap(resource_path("splash.png"))
-        # 缩放到原来的50%大小（或根据需要调整）
-        scaled_pixmap = original_pixmap.scaled(
-            original_pixmap.width() // 2, 
-            original_pixmap.height() // 2,
-            Qt.KeepAspectRatio, 
-            Qt.SmoothTransformation
-        )
-        splash = QSplashScreen(scaled_pixmap, Qt.WindowStaysOnTopHint)
-        
-        # 可以在启动画面上添加一些消息
-        splash.showMessage("正在加载...", Qt.AlignBottom | Qt.AlignCenter, Qt.white)
-        splash.show()
-        
-        # 让应用程序处理事件，确保启动画面显示
-        app.processEvents()
-    except Exception as e:
-        print(f"启动画面加载失败: {e}")
-    
     # 创建主窗口
     window = BarcodeGenerator()
-    
-    # 如果启动画面创建成功，则设置延迟显示主窗口
-    if 'splash' in locals():
-        QTimer.singleShot(1500, lambda: (window.show(), splash.finish(window)))
-    else:
-        window.show()
-    
+    window.show()
+
     sys.exit(app.exec_())

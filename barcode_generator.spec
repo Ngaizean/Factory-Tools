@@ -6,7 +6,6 @@ a = Analysis(
     pathex=[],
     binaries=[],
     datas=[
-        ('assets/splash.png', '.'),
         ('assets/app.svg', '.'),
         ('assets/app.ico', '.'),
         ('Encoder', 'Encoder'),
